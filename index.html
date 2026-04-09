@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--color-background-tertiary);font-family:var(--font-sans,system-ui,sans-serif)}
+.screen{display:none}.screen.active{display:block}
+.nb{transition:color .15s;font-family:inherit}.nb.an{color:var(--a)!important}
+.rb{border:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);color:var(--color-text-secondary);font-family:inherit;cursor:pointer}
+.rb.ar{background:var(--a);color:#fff;border-color:var(--a)}
+input::-webkit-inner-spin-button,input::-webkit-outer-spin-button{-webkit-appearance:none}
+input[type=number]{-moz-appearance:textfield}
+#flo{--a:#1D9E75;--al:#E1F5EE;--ad:#085041;--am:#9FE1CB}
+</style></head><body>
+<h2 style="position:absolute;left:-9999px">Flo — Aplikasi Manajemen Keuangan Pribadi dalam Rupiah</h2>
+<div id="flo" style="max-width:420px;margin:0 auto;height:680px;position:relative;overflow:hidden;border:0.5px solid var(--color-border-tertiary);border-radius:16px;background:var(--color-background-tertiary)">
+
+<div id="toast" style="position:absolute;top:-90px;left:12px;right:12px;z-index:20;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:10px;padding:11px 14px;transition:top .3s ease;pointer-events:none"></div>
+
+<!-- ONBOARDING -->
+<div id="ob" style="position:absolute;inset:0;background:var(--color-background-primary);z-index:10;overflow-y:auto;padding:36px 24px;display:flex;flex-direction:column;justify-content:center">
+  <div style="text-align:center;margin-bottom:28px">
+    <div style="font-size:52px;margin-bottom:12px">💸</div>
+    <p style="font-size:22px;font-weight:500">Halo! Ini Flo.</p>
+    <p style="font-size:14px;color:var(--color-text-secondary);margin-top:6px;line-height:1.7">Keuanganmu, versi yang lebih baik.<br>Setup dalam 30 detik — tidak ada penghakiman.</p>
+  </div>
+  <div style="margin-bottom:14px">
+    <p style="font-size:11px;color:var(--color-text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Nama kamu</p>
+    <input id="ob-name" type="text" placeholder="e.g. Alex" maxlength="20" style="width:100%;padding:12px 14px;font-size:15px;border:0.5px solid var(--color-border-tertiary);border-radius:8px;background:var(--color-background-secondary);color:var(--color-text-primary);outline:none;font-family:inherit"/>
+  </div>
+  <div style="margin-bottom:14px">
+    <p style="font-size:11px;color:var(--color-text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Budget bulanan (Rp)</p>
+    <input id="ob-budget" type="number" placeholder="e.g. 3000000" min="0" style="width:100%;padding:12px 14px;font-size:15px;border:0.5px solid var(--color-border-tertiary);border-radius:8px;background:var(--color-background-secondary);color:var(--color-text-primary);outline:none;font-family:inherit"/>
+    <p style="font-size:11px;color:var(--color-text-secondary);margin-top:5px">Bisa diubah kapan saja di Pengaturan.</p>
+  </div>
+  <div style="margin-bottom:22px">
+    <p style="font-size:11px;color:var(--color-text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Pilih tema</p>
+    <div id="ob-themes" style="display:flex;gap:10px"></div>
+  </div>
+  <button onclick="finishOB()" style="width:100%;padding:14px;font-size:15px;font-weight:500;background:var(--a);color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:inherit">Mulai dari nol →</button>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none;height:680px">
+  <div id="cnt" style="height:620px;overflow-y:auto;-webkit-overflow-scrolling:touch">
+
+    <!-- HOME -->
+    <div id="s-home" class="screen active">
+      <div style="padding:14px 20px 10px;background:var(--color-background-primary)">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><p style="font-size:11px;color:var(--color-text-secondary)">Selamat datang kembali</p><p id="h-name" style="font-size:16px;font-weight:500">— 👋</p></div>
+          <div id="h-av" style="width:36px;height:36px;border-radius:50%;background:var(--al);display:flex;align-items:center;justify-content:center;font-size:16px">💰</div>
+        </div>
+      </div>
+      <div style="margin:10px 14px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:16px 18px">
+        <p style="font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.05em">Aman dibelanjakan hari ini</p>
+        <p id="h-safe" style="font-size:34px;font-weight:500;color:var(--a);margin:4px 0 8px">Rp 0</p>
+        <div style="height:5px;background:var(--color-background-secondary);border-radius:3px;margin-bottom:6px"><div id="h-bar" style="height:100%;border-radius:3px;background:var(--a);width:100%;transition:width .4s"></div></div>
+        <p id="h-sub" style="font-size:12px;color:var(--color-text-secondary)">Set budget di Pengaturan untuk mulai</p>
+      </div>
+      <div style="margin:0 14px 10px;display:flex;gap:8px">
+        <div style="flex:1;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:10px;padding:12px">
+          <p style="font-size:10px;color:var(--color-text-secondary);margin-bottom:4px">Kesehatan</p>
+          <p id="h-score" style="font-size:22px;font-weight:500;color:var(--a)">100</p>
+          <p id="h-slab" style="font-size:10px;color:var(--a)">Sempurna</p>
+        </div>
+        <div style="flex:1;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:10px;padding:12px">
+          <p style="font-size:10px;color:var(--color-text-secondary);margin-bottom:4px">Streak</p>
+          <p id="h-streak" style="font-size:22px;font-weight:500">0</p>
+          <p style="font-size:10px;color:var(--color-text-secondary)">hari bersih</p>
+        </div>
+        <div style="flex:1;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:10px;padding:12px">
+          <p style="font-size:10px;color:var(--color-text-secondary);margin-bottom:4px">Hemat</p>
+          <p id="h-saved" style="font-size:16px;font-weight:500;margin-top:4px">Rp 0</p>
+          <p style="font-size:10px;color:var(--color-text-secondary)">dari hold</p>
+        </div>
+      </div>
+      <div style="margin:0 14px 10px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:14px 16px">
+        <p style="font-size:13px;font-weight:500;margin-bottom:10px">7 hari terakhir</p>
+        <div id="wc" style="display:flex;gap:5px;align-items:flex-end;height:56px;margin-bottom:6px"></div>
+        <div id="wl" style="display:flex;gap:5px"></div>
+      </div>
+      <div style="margin:0 14px 16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <p style="font-size:13px;font-weight:500">Terakhir</p>
+          <button onclick="nav('reports')" style="font-size:12px;color:var(--color-text-secondary);background:none;border:none;cursor:pointer;font-family:inherit">Lihat semua →</button>
+        </div>
+        <div id="tx-list"></div>
+        <div id="tx-empty" style="text-align:center;padding:24px 0;display:none">
+          <p style="font-size:32px;margin-bottom:8px">🎯</p>
+          <p style="font-size:13px;color:var(--color-text-secondary)">Belum ada transaksi.<br>Catat pengeluaran pertamamu!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADD -->
+    <div id="s-add" class="screen">
+      <div style="padding:14px 20px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary)">
+        <p style="font-size:16px;font-weight:500">Catat pengeluaran</p>
+        <p style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">Selesai dalam 3 detik.</p>
+      </div>
+      <div style="padding:18px 14px">
+        <div style="text-align:center;margin-bottom:18px">
+          <p style="font-size:11px;color:var(--color-text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Jumlah (Rp)</p>
+          <input id="amt" type="number" placeholder="0" min="0" step="1000" style="font-size:36px;font-weight:500;border:none;background:transparent;width:100%;text-align:center;color:var(--color-text-primary);outline:none;font-family:inherit"/>
+          <div style="height:0.5px;background:var(--color-border-tertiary);margin:10px 24px"></div>
+        </div>
+        <p style="font-size:13px;font-weight:500;margin-bottom:10px">Kategori</p>
+        <div id="cg" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px"></div>
+        <p style="font-size:13px;font-weight:500;margin-bottom:8px">Catatan <span style="font-weight:400;color:var(--color-text-secondary)">(opsional)</span></p>
+        <input id="note" type="text" placeholder="e.g. Kopi pagi di warung" style="width:100%;padding:10px 12px;font-size:14px;border:0.5px solid var(--color-border-tertiary);border-radius:8px;background:var(--color-background-primary);color:var(--color-text-primary);outline:none;font-family:inherit;margin-bottom:14px"/>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <button onclick="logNow()" style="padding:13px;font-size:14px;font-weight:500;background:var(--al);color:var(--ad);border:0.5px solid var(--am);border-radius:8px;cursor:pointer;font-family:inherit">Catat sekarang</button>
+          <button onclick="addHold()" style="padding:13px;font-size:14px;font-weight:500;background:#FAEEDA;color:#633806;border:0.5px solid #FAC775;border-radius:8px;cursor:pointer;font-family:inherit">Tahan 48 jam</button>
+        </div>
+        <p style="font-size:12px;color:var(--color-text-secondary);text-align:center;margin-top:10px;line-height:1.5">Tahan = paksa dirimu pikir 48 jam dulu.<br>Cegah penyesalan belakangan.</p>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div id="s-reports" class="screen">
+      <div style="padding:14px 20px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary)">
+        <p style="font-size:16px;font-weight:500">Laporan</p>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button onclick="setR('day')" id="rb-day" class="rb ar" style="flex:1;padding:7px;font-size:13px;border-radius:8px">Hari</button>
+          <button onclick="setR('week')" id="rb-week" class="rb" style="flex:1;padding:7px;font-size:13px;border-radius:8px">Minggu</button>
+          <button onclick="setR('month')" id="rb-month" class="rb" style="flex:1;padding:7px;font-size:13px;border-radius:8px">Bulan</button>
+        </div>
+      </div>
+      <div style="padding:12px 14px">
+        <div id="rsum" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:16px;margin-bottom:10px"></div>
+        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:16px;margin-bottom:10px">
+          <p style="font-size:13px;font-weight:500;margin-bottom:12px">Per kategori</p>
+          <div id="rcat"></div>
+        </div>
+        <div id="rins" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:16px"></div>
+      </div>
+    </div>
+
+    <!-- SHIELD -->
+    <div id="s-shield" class="screen">
+      <div style="padding:14px 20px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary)">
+        <p style="font-size:16px;font-weight:500">Anti-Bocor</p>
+        <p style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">Stop uang kabur tanpa sadar</p>
+      </div>
+      <div style="padding:12px 14px">
+        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:16px;margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <p style="font-size:13px;font-weight:500">Keranjang Tahan 48 Jam</p>
+            <span id="hb" style="font-size:11px;background:#FAEEDA;color:#633806;padding:2px 8px;border-radius:6px">0 item</span>
+          </div>
+          <div id="hl"></div>
+        </div>
+        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:16px;margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <p style="font-size:13px;font-weight:500">Amplop Digital</p>
+            <button onclick="nav('settings')" style="font-size:11px;color:var(--color-text-secondary);background:none;border:none;cursor:pointer;font-family:inherit">Kelola →</button>
+          </div>
+          <div id="el"></div>
+        </div>
+        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <p style="font-size:13px;font-weight:500">Radar Langganan</p>
+            <span id="stot" style="font-size:13px;font-weight:500"></span>
+          </div>
+          <div id="sl"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="s-settings" class="screen">
+      <div style="padding:14px 20px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary)">
+        <p style="font-size:16px;font-weight:500">Pengaturan</p>
+        <p style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">Semuanya bisa kamu ubah di sini</p>
+      </div>
+      <div style="padding:12px 14px">
+
+        <!-- Profile -->
+        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:16px;margin-bottom:10px">
+          <p style="font-size:13px;font-weight:500;margin-bottom:14px">👤 Profil</p>
+          <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:6px">Nama</p>
+          <input id="cfg-name" type="text" maxlength="20" oninput="ST.username=this.value;updateH()" style="width:100%;padding:10px 12px;font-size:14px;border:0.5px solid var(--color-border-tertiary);border-radius:8px;background:var(--color-background-secondary);color:var(--color-text-primary);outline:none;font-family:inherit;margin-bottom:12px"/>
+          <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:8px">Avatar</p>
+          <div id="ep" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+        </div>
+
+        <!-- Appearance -->
+        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:16px;margin-bottom:10px">
+          <p style="font-size:13px;font-weight:500;margin-bottom:14px">🎨 Tampilan</p>
+          <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:8px">Tema warna</p>
+          <div id="tp" style="display:flex;gap:10px;margin-bottom:14px"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:0.5px solid var(--color-border-tertiary)">
+            <div>
+              <p style="font-size:14px">Mode notifikasi</p>
+              <p id="ml" style="font-size:12px;color:var(--color-text-secondary)">Roast — jujur habis-habisan</p>
+            </div>
+            <button id="mb" onclick="toggleMode()" style="padding:6px 14px;font-size:12px;border-radius:8px;cursor:pointer;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:inherit">Roast</button>
+          </div>
+        </div>
+
+        <!-- Budget -->
+        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:16px;margin-bottom:10px">
+          <p style="font-size:13px;font-weight:500;margin-bottom:14px">💰 Anggaran</p>
+          <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:6px">Budget bulanan (Rp)</p>
+          <input id="cfg-bud" type="number" min="0" step="100000" oninput="ST.budget=parseFloat(this.value)||0;renderH();updDaily()" style="width:100%;padding:10px 12px;font-size:14px;border:0.5px solid var(--color-border-tertiary);border-radius:8px;background:var(--color-background-secondary);color:var(--color-text-primary);outline:none;font-family:inherit;margin-bottom:10px"/>
+          <div style="background:var(--color-background-secondary);border-radius:8px;padding:10px 12px">
+            <p style="font-size:12px;color:var(--color-text-secondary)">Budget harian otomatis</p>
+            <p id="cfg-daily" style="font-size:15px;font-weight:500;margin-top:2px">—</p>
+          </div>
+        </div>
+
+        <!-- Envelopes -->
+        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:16px;margin-bottom:10px">
+          <p style="font-size:13px;font-weight:500;margin-bottom:14px">📬 Amplop Digital</p>
+          <div id="cfg-env"></div>
+          <div style="margin-top:10px;padding-top:12px;border-top:0.5px solid var(--color-border-tertiary)">
+            <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:8px">Tambah amplop baru</p>
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+              <input id="ei" type="text" value="💼" maxlength="2" style="width:44px;padding:8px;font-size:16px;text-align:center;border:0.5px solid var(--color-border-tertiary);border-radius:8px;background:var(--color-background-secondary);font-family:inherit"/>
+              <input id="en" type="text" placeholder="Nama amplop" style="flex:1;padding:8px 10px;font-size:13px;border:0.5px solid var(--color-border-tertiary);border-radius:8px;background:var(--color-background-secondary);color:var(--color-text-primary);outline:none;font-family:inherit"/>
+              <input id="eb" type="number" placeholder="Budget" style="width:110px;padding:8px 10px;font-size:13px;border:0.5px solid var(--color-border-tertiary);border-radius:8px;background:var(--color-background-secondary);color:var(--color-text-primary);outline:none;font-family:inherit"/>
+            </div>
+            <button onclick="addEnv()" style="width:100%;padding:9px;font-size:13px;font-weight:500;background:var(--al);color:var(--ad);border:0.5px solid var(--am);border-radius:8px;cursor:pointer;font-family:inherit">+ Tambah amplop</button>
+          </div>
+        </div>
+
+        <!-- Subscriptions -->
+        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:16px;margin-bottom:10px">
+          <p style="font-size:13px;font-weight:500;margin-bottom:14px">📡 Langganan</p>
+          <div id="cfg-sub"></div>
+          <div style="margin-top:10px;padding-top:12px;border-top:0.5px solid var(--color-border-tertiary)">
+            <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:8px">Tambah langganan</p>
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+              <input id="sn" type="text" placeholder="Nama layanan" style="flex:1;padding:8px 10px;font-size:13px;border:0.5px solid var(--color-border-tertiary);border-radius:8px;background:var(--color-background-secondary);color:var(--color-text-primary);outline:none;font-family:inherit"/>
+              <input id="sa" type="number" placeholder="Rp/bulan" style="width:120px;padding:8px 10px;font-size:13px;border:0.5px solid var(--color-border-tertiary);border-radius:8px;background:var(--color-background-secondary);color:var(--color-text-primary);outline:none;font-family:inherit"/>
+            </div>
+            <button onclick="addSub()" style="width:100%;padding:9px;font-size:13px;font-weight:500;background:var(--al);color:var(--ad);border:0.5px solid var(--am);border-radius:8px;cursor:pointer;font-family:inherit">+ Tambah langganan</button>
+          </div>
+        </div>
+
+        <!-- XP / Gamification -->
+        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:16px;margin-bottom:10px">
+          <p style="font-size:13px;font-weight:500;margin-bottom:14px">🏆 Pencapaian</p>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+            <div id="av-big" style="width:48px;height:48px;border-radius:50%;background:var(--al);display:flex;align-items:center;justify-content:center;font-size:24px">💰</div>
+            <div style="flex:1">
+              <p id="lv-lbl" style="font-size:14px;font-weight:500">Level 1 — Pemula</p>
+              <div style="height:5px;background:var(--color-background-secondary);border-radius:3px;margin:6px 0"><div id="xpbar" style="height:100%;border-radius:3px;background:var(--a);width:0%;transition:width .4s"></div></div>
+              <p id="xp-lbl" style="font-size:11px;color:var(--color-text-secondary)">0 / 100 XP</p>
+            </div>
+          </div>
+          <div id="bdg" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+        </div>
+
+        <!-- Transactions list (editable) -->
+        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:16px;margin-bottom:10px">
+          <p style="font-size:13px;font-weight:500;margin-bottom:14px">🗂 Histori Transaksi</p>
+          <div id="cfg-tx"></div>
+        </div>
+
+        <!-- Danger zone -->
+        <div style="background:var(--color-background-primary);border:0.5px solid #F7C1C1;border-radius:12px;padding:16px;margin-bottom:24px">
+          <p style="font-size:13px;font-weight:500;color:#A32D2D;margin-bottom:6px">⚠️ Zona Berbahaya</p>
+          <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:12px">Hapus semua data dan kembali ke onboarding. Tidak bisa dibatalkan.</p>
+          <button onclick="resetAll()" style="width:100%;padding:10px;font-size:13px;font-weight:500;background:#FCEBEB;color:#791F1F;border:0.5px solid #F7C1C1;border-radius:8px;cursor:pointer;font-family:inherit">Hapus semua data & mulai ulang</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /cnt -->
+  <nav style="position:absolute;bottom:0;left:0;right:0;height:60px;background:var(--color-background-primary);border-top:0.5px solid var(--color-border-tertiary);display:flex">
+    <button onclick="nav('home')" id="nav-home" class="nb an" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;cursor:pointer;font-size:10px;color:var(--color-text-secondary)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Beranda</button>
+    <button onclick="nav('add')" id="nav-add" class="nb" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;cursor:pointer;font-size:10px;color:var(--color-text-secondary)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Catat</button>
+    <button onclick="nav('reports')" id="nav-reports" class="nb" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;cursor:pointer;font-size:10px;color:var(--color-text-secondary)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Laporan</button>
+    <button onclick="nav('shield')" id="nav-shield" class="nb" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;cursor:pointer;font-size:10px;color:var(--color-text-secondary)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Anti-Bocor</button>
+    <button onclick="nav('settings')" id="nav-settings" class="nb" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;cursor:pointer;font-size:10px;color:var(--color-text-secondary)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Atur</button>
+  </nav>
+</div><!-- /app -->
+</div><!-- /flo -->
+
+<script>
+const TH={
+  green:{a:'#1D9E75',al:'#E1F5EE',ad:'#085041',am:'#9FE1CB'},
+  purple:{a:'#7F77DD',al:'#EEEDFE',ad:'#26215C',am:'#CECBF6'},
+  blue:{a:'#378ADD',al:'#E6F1FB',ad:'#042C53',am:'#B5D4F4'},
+  coral:{a:'#D85A30',al:'#FAECE7',ad:'#4A1B0C',am:'#F5C4B3'},
+};
+const TNAME={green:'Hijau',purple:'Ungu',blue:'Biru',coral:'Oranye'};
+const AVS=['💰','🐼','🦊','🐸','🦁','🐯','🦋','🌸','⭐','🔥','🌈','🍀'];
+const CATS=[
+  {name:'Makanan',icon:'🍜',col:'#1D9E75'},
+  {name:'Transport',icon:'🚗',col:'#378ADD'},
+  {name:'Belanja',icon:'🛍',col:'#D85A30'},
+  {name:'Tagihan',icon:'💡',col:'#BA7517'},
+  {name:'Hiburan',icon:'🎮',col:'#7F77DD'},
+  {name:'Kesehatan',icon:'💊',col:'#639922'},
+  {name:'Lainnya',icon:'📦',col:'#888780'},
+];
+const DA=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+const LVS=['Pemula','Pejuang','Penghemat','Ahli','Master','Legenda'];
+
+let ST={
+  username:'',avatar:'💰',theme:'green',budget:0,
+  roast:true,cat:'Makanan',rp:'day',
+  txs:[],holds:[],envs:[],subs:[],
+  saved:0,streak:0,xp:0
+};
+let obTheme='green';
+
+// ── UTILS ──────────────────────────────────
+function fmt(n){return'Rp\u00a0'+Math.round(n).toLocaleString('id-ID');}
+function dag(n){const d=new Date();d.setDate(d.getDate()-n);return d;}
+function fmtD(d){const f=Math.floor((new Date()-d)/86400000);if(f===0)return'Hari ini';if(f===1)return'Kemarin';return f+' hari lalu';}
+function catOf(n){return CATS.find(c=>c.name===n)||CATS[6];}
+
+function applyTH(t){
+  ST.theme=t;
+  const r=document.getElementById('flo');
+  const th=TH[t]||TH.green;
+  r.style.setProperty('--a',th.a);
+  r.style.setProperty('--al',th.al);
+  r.style.setProperty('--ad',th.ad);
+  r.style.setProperty('--am',th.am);
+}
+
+// ── ONBOARDING ────────────────────────────
+function buildOBThemes(){
+  document.getElementById('ob-themes').innerHTML=Object.keys(TH).map(k=>`
+    <button onclick="selOBTheme('${k}')" id="obt-${k}" style="flex:1;height:38px;border-radius:8px;background:${TH[k].a};border:${k==='green'?'3px solid #111':'1px solid transparent'};cursor:pointer"></button>`).join('');
+}
+function selOBTheme(t){
+  obTheme=t;
+  Object.keys(TH).forEach(k=>{const b=document.getElementById('obt-'+k);if(b)b.style.border=k===t?'3px solid #111':'1px solid transparent';});
+  applyTH(t);
+}
+function finishOB(){
+  const name=document.getElementById('ob-name').value.trim();
+  const bud=parseFloat(document.getElementById('ob-budget').value)||0;
+  if(!name){showT('Masukkan namamu dulu ya!','w');return;}
+  ST.username=name;ST.budget=bud;ST.theme=obTheme;
+  document.getElementById('ob').style.display='none';
+  document.getElementById('app').style.display='block';
+  updateH();renderS();renderH();nav('home');
+}
+
+// ── NAV ───────────────────────────────────
+function nav(tab){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('an'));
+  document.getElementById('s-'+tab).classList.add('active');
+  document.getElementById('nav-'+tab).classList.add('an');
+  document.getElementById('cnt').scrollTop=0;
+  if(tab==='home')renderH();
+  else if(tab==='add')renderA();
+  else if(tab==='reports')renderR();
+  else if(tab==='shield')renderSH();
+  else if(tab==='settings')renderS();
+}
+
+function updateH(){
+  const n=document.getElementById('h-name');
+  const a=document.getElementById('h-av');
+  if(n)n.textContent=(ST.username||'Kamu')+' 👋';
+  if(a)a.textContent=ST.avatar;
+}
+
+// ── HOME ──────────────────────────────────
+function renderH(){
+  const now=new Date();
+  const tod=ST.txs.filter(t=>t.date.toDateString()===now.toDateString());
+  const spent=tod.reduce((s,t)=>s+t.amt,0);
+  const daily=ST.budget>0?ST.budget/30:0;
+  const safe=Math.max(0,daily-spent);
+  const pct=daily>0?Math.min(100,Math.round((safe/daily)*100)):100;
+  const col=pct>30?'var(--a)':pct>10?'#EF9F27':'#E24B4A';
+  const sh=document.getElementById('h-safe');
+  const sb=document.getElementById('h-bar');
+  const ss=document.getElementById('h-sub');
+  if(sh){sh.textContent=fmt(safe);sh.style.color=col;}
+  if(sb){sb.style.width=pct+'%';sb.style.background=col;}
+  if(ss){ss.textContent=ST.budget>0?fmt(spent)+' dibelanjakan · '+fmt(daily)+' budget harian':'Set budget di Pengaturan untuk mulai';}
+
+  const sc=ST.txs.length===0?100:Math.min(100,Math.max(0,100-Math.round(daily>0?(spent/daily)*40:0)));
+  const sl=['Bahaya','Cukup','Baik','Sempurna'];
+  const sci=sc>=90?3:sc>=70?2:sc>=50?1:0;
+  const scol=sc>=70?'var(--a)':sc>=50?'#EF9F27':'#E24B4A';
+  const se=document.getElementById('h-score'),sl2=document.getElementById('h-slab');
+  if(se){se.textContent=sc;se.style.color=scol;}
+  if(sl2){sl2.textContent=sl[sci];sl2.style.color=scol;}
+  const stre=document.getElementById('h-streak');const sve=document.getElementById('h-saved');
+  if(stre)stre.textContent=ST.streak;
+  if(sve)sve.textContent=ST.saved>0?fmt(ST.saved):'Rp\u00a00';
+
+  // Week chart
+  const amts=[];const lbls=[];
+  for(let i=6;i>=0;i--){
+    const d=dag(i);
+    amts.push(ST.txs.filter(t=>t.date.toDateString()===d.toDateString()).reduce((s,t)=>s+t.amt,0));
+    lbls.push(DA[d.getDay()]);
+  }
+  const mx=Math.max(...amts,1);
+  const wc=document.getElementById('wc');const wl=document.getElementById('wl');
+  if(wc)wc.innerHTML=amts.map((a,i)=>`<div style="flex:1;height:${Math.max(4,Math.round((a/mx)*50))}px;border-radius:3px;background:${i===6?'var(--a)':'var(--al)'}"></div>`).join('');
+  if(wl)wl.innerHTML=lbls.map((l,i)=>`<div style="flex:1;text-align:center;font-size:10px;color:${i===6?'var(--a)':'var(--color-text-secondary)'}">${l}</div>`).join('');
+
+  // TX list
+  const tl=document.getElementById('tx-list');const te=document.getElementById('tx-empty');
+  if(tl){
+    if(ST.txs.length===0){tl.innerHTML='';if(te)te.style.display='block';}
+    else{
+      if(te)te.style.display='none';
+      tl.innerHTML=ST.txs.slice(0,6).map(tx=>{
+        const c=catOf(tx.cat);
+        return`<div style="display:flex;align-items:center;gap:10px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:10px 12px;margin-bottom:6px">
+          <div style="width:34px;height:34px;border-radius:50%;background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;font-size:15px">${c.icon}</div>
+          <div style="flex:1"><p style="font-size:13px">${tx.note}</p><p style="font-size:11px;color:var(--color-text-secondary)">${fmtD(tx.date)} · ${tx.cat}</p></div>
+          <p style="font-size:13px;font-weight:500">-${fmt(tx.amt)}</p>
+        </div>`;
+      }).join('');
+    }
+  }
+}
+
+// ── ADD ───────────────────────────────────
+function renderA(){
+  const cg=document.getElementById('cg');if(!cg)return;
+  cg.innerHTML=CATS.map(c=>`
+    <button onclick="selCat('${c.name}')" style="padding:10px 4px;border-radius:8px;border:0.5px solid ${ST.cat===c.name?c.col:'var(--color-border-tertiary)'};background:${ST.cat===c.name?c.col+'22':'var(--color-background-primary)'};cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:inherit">
+      <span style="font-size:18px">${c.icon}</span>
+      <span style="font-size:10px;color:var(--color-text-secondary)">${c.name}</span>
+    </button>`).join('');
+}
+function selCat(n){ST.cat=n;renderA();}
+
+function logNow(){
+  const amt=parseFloat(document.getElementById('amt').value);
+  if(!amt||amt<=0){showT('Masukkan jumlah yang valid!','w');return;}
+  const note=document.getElementById('note').value||ST.cat;
+  ST.txs.unshift({id:Date.now(),note,cat:ST.cat,amt,date:new Date()});
+  const env=ST.envs.find(e=>e.name===ST.cat);if(env)env.spent+=amt;
+  ST.xp+=10;ST.streak++;
+  document.getElementById('amt').value='';document.getElementById('note').value='';
+  const R=[`${fmt(amt)} untuk ${ST.cat}? Yakin itu perlu?`,`Lagi-lagi ${ST.cat}. Dompetmu nangis.`,`Oke dicatat. Semoga worth it ya...`];
+  const G=[`Tercatat! Setiap rupiah terlacak = lebih bijak.`,`${fmt(amt)} dicatat. Bagus sekali!`,`Kesadaran finansial dimulai dari sini.`];
+  showT((ST.roast?R:G)[Math.floor(Math.random()*3)],'ok');
+  nav('home');
+}
+function addHold(){
+  const amt=parseFloat(document.getElementById('amt').value);
+  if(!amt||amt<=0){showT('Masukkan jumlah yang valid!','w');return;}
+  const note=document.getElementById('note').value||`Pembelian ${ST.cat}`;
+  ST.holds.push({id:Date.now(),name:note,cat:ST.cat,amt,hrs:0});
+  document.getElementById('amt').value='';document.getElementById('note').value='';
+  showT('Ditahan! Cek 48 jam lagi. Masa depanmu yang memutuskan.','ok');
+  nav('shield');
+}
+
+// ── REPORTS ───────────────────────────────
+function renderR(){
+  const now=new Date();let txs,label,bud;
+  if(ST.rp==='day'){txs=ST.txs.filter(t=>t.date.toDateString()===now.toDateString());label='Hari ini';bud=ST.budget>0?Math.round(ST.budget/30):0;}
+  else if(ST.rp==='week'){const wa=new Date(now-7*86400000);txs=ST.txs.filter(t=>t.date>=wa);label='7 hari ini';bud=ST.budget>0?Math.round(ST.budget/4):0;}
+  else{txs=ST.txs.filter(t=>t.date.getMonth()===now.getMonth()&&t.date.getFullYear()===now.getFullYear());label='Bulan ini';bud=ST.budget;}
+  const total=txs.reduce((s,t)=>s+t.amt,0);
+  const pct=bud>0?Math.min(100,Math.round((total/bud)*100)):0;
+  const col=pct>90?'#E24B4A':pct>70?'#EF9F27':'var(--a)';
+  const rs=document.getElementById('rsum');
+  if(rs)rs.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+    <div><p style="font-size:11px;color:var(--color-text-secondary);margin-bottom:4px">${label}</p><p style="font-size:28px;font-weight:500">${fmt(total)}</p><p style="font-size:12px;color:var(--color-text-secondary)">dari ${bud>0?fmt(bud):'budget belum diset'}</p></div>
+    <div style="text-align:right"><p style="font-size:28px;font-weight:500;color:${col}">${pct}%</p><p style="font-size:12px;color:var(--color-text-secondary)">digunakan</p></div>
+  </div>
+  <div style="height:6px;background:var(--color-background-secondary);border-radius:3px"><div style="height:100%;border-radius:3px;background:${col};width:${pct}%;transition:width .4s"></div></div>`;
+  const byCat={};txs.forEach(t=>{byCat[t.cat]=(byCat[t.cat]||0)+t.amt;});
+  const sorted=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);const mx=sorted[0]?.[1]||1;
+  const rc=document.getElementById('rcat');
+  if(rc)rc.innerHTML=sorted.length?sorted.map(([n,a])=>{
+    const c=catOf(n);const w=Math.round((a/mx)*100);
+    return`<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px">${c.icon} ${n}</span><span style="font-size:12px;font-weight:500">${fmt(a)}</span></div>
+      <div style="height:6px;background:var(--color-background-secondary);border-radius:3px"><div style="height:100%;border-radius:3px;background:${c.col};width:${w}%"></div></div>
+    </div>`;
+  }).join(''):'<p style="font-size:13px;color:var(--color-text-secondary)">Belum ada transaksi periode ini.</p>';
+  const top=sorted[0];
+  const ins={day:total===0?'Belum ada pengeluaran hari ini. Luar biasa!':`Terbesar: ${top?.[0]}. Sisa: ${bud>0?fmt(Math.max(0,bud-total)):'(set budget dulu)'}.`,week:total===0?'Minggu yang bersih!':`${sorted.length} kategori tercatat. Terbesar: ${top?.[0]||'—'}.`,month:total===0?'Bulan yang bersih!':`${pct<50?'Kontrol bagus!':pct<80?'Setengah lebih — hati-hati.':'Hampir habis! Rem sekarang.'}`};
+  const ri=document.getElementById('rins');
+  if(ri)ri.innerHTML=`<p style="font-size:11px;color:var(--color-text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Insight</p><p style="font-size:13px;line-height:1.6">${ins[ST.rp]}</p>`;
+}
+function setR(p){
+  ST.rp=p;
+  document.querySelectorAll('.rb').forEach(b=>b.classList.remove('ar'));
+  document.getElementById('rb-'+p).classList.add('ar');
+  renderR();
+}
+
+// ── SHIELD ────────────────────────────────
+function renderSH(){
+  const hb=document.getElementById('hb');if(hb)hb.textContent=ST.holds.length+' item';
+  const hl=document.getElementById('hl');
+  if(hl)hl.innerHTML=ST.holds.length?ST.holds.map(item=>{
+    const pct=Math.min(100,Math.round((item.hrs/48)*100));const left=Math.max(0,48-item.hrs);const rdy=left===0;
+    return`<div style="border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:12px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><p style="font-size:13px">${item.name}</p><p style="font-size:13px;font-weight:500">${fmt(item.amt)}</p></div>
+      <div style="height:4px;background:var(--color-background-secondary);border-radius:2px;margin-bottom:8px"><div style="height:100%;border-radius:2px;background:${rdy?'var(--a)':'#EF9F27'};width:${pct}%"></div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <p style="font-size:11px;color:var(--color-text-secondary)">${rdy?'Siap diputuskan!':left+'j lagi — pikir dulu.'}</p>
+        <div style="display:flex;gap:6px">
+          <button onclick="rejH(${item.id})" style="padding:4px 10px;font-size:12px;border:0.5px solid #F7C1C1;border-radius:6px;background:#FCEBEB;color:#791F1F;cursor:pointer;font-family:inherit">Lewati + hemat</button>
+          <button onclick="appH(${item.id})" style="padding:4px 10px;font-size:12px;border:0.5px solid ${rdy?'var(--am)':'var(--color-border-tertiary)'};border-radius:6px;background:${rdy?'var(--al)':'var(--color-background-secondary)'};color:${rdy?'var(--ad)':'var(--color-text-secondary)'};cursor:pointer;font-family:inherit">${rdy?'Beli sekarang':'Menunggu...'}</button>
+        </div>
+      </div>
+    </div>`;
+  }).join(''):'<p style="font-size:13px;color:var(--color-text-secondary)">Keranjang kosong. Kontrol impuls yang bagus!</p>';
+  const el=document.getElementById('el');
+  if(el)el.innerHTML=ST.envs.length?ST.envs.map(env=>{
+    const pct=env.budget>0?Math.min(100,Math.round((env.spent/env.budget)*100)):0;
+    const col=pct>90?'#E24B4A':pct>70?'#EF9F27':'var(--a)';
+    return`<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px">${env.icon} ${env.name}</span><span style="font-size:12px;font-weight:500;color:${col}">${fmt(env.spent)} / ${env.budget>0?fmt(env.budget):'—'}</span></div>
+      <div style="height:6px;background:var(--color-background-secondary);border-radius:3px"><div style="height:100%;border-radius:3px;background:${col};width:${pct}%"></div></div>
+    </div>`;
+  }).join(''):'<p style="font-size:13px;color:var(--color-text-secondary)">Belum ada amplop. Buat di Pengaturan.</p>';
+  const stot=document.getElementById('stot');const sl=document.getElementById('sl');
+  const total=ST.subs.reduce((s,sub)=>s+sub.amt,0);
+  if(stot){stot.textContent=fmt(total)+'/bln';stot.style.color=total>500000?'#E24B4A':'var(--color-text-primary)';}
+  if(sl)sl.innerHTML=ST.subs.length?ST.subs.map(sub=>`
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--color-border-tertiary)">
+      <p style="font-size:13px">${sub.name}</p><p style="font-size:13px;font-weight:500">${fmt(sub.amt)}</p>
+    </div>`).join(''):'<p style="font-size:13px;color:var(--color-text-secondary)">Belum ada langganan tercatat.</p>';
+}
+function appH(id){
+  const item=ST.holds.find(i=>i.id===id);if(!item)return;
+  if(item.hrs<48){showT(`Masih ${48-item.hrs} jam lagi. Bertahan!`,'w');return;}
+  ST.txs.unshift({id:Date.now(),note:item.name,cat:item.cat,amt:item.amt,date:new Date()});
+  ST.holds=ST.holds.filter(i=>i.id!==id);
+  showT('Dicatat setelah refleksi. Pembelian yang dipikirkan = pembelian bijak.','ok');renderSH();
+}
+function rejH(id){
+  const item=ST.holds.find(i=>i.id===id);if(!item)return;
+  ST.holds=ST.holds.filter(i=>i.id!==id);
+  ST.saved+=item.amt;ST.streak++;ST.xp+=25;
+  showT(`Hemat ${fmt(item.amt)}! +25 XP 🎉 Streak: ${ST.streak} hari.`,'ok');renderSH();
+}
+
+// ── SETTINGS ──────────────────────────────
+function renderS(){
+  const cn=document.getElementById('cfg-name');if(cn)cn.value=ST.username;
+  const cb=document.getElementById('cfg-bud');if(cb)cb.value=ST.budget||'';
+  updDaily();
+
+  // Mode
+  const ml=document.getElementById('ml');const mb=document.getElementById('mb');
+  if(ml)ml.textContent=ST.roast?'Roast — jujur habis-habisan':'Gentle — semangat terus';
+  if(mb)mb.textContent=ST.roast?'Roast':'Gentle';
+
+  // Emoji picker
+  const ep=document.getElementById('ep');
+  if(ep)ep.innerHTML=AVS.map(e=>`
+    <button onclick="setAv('${e}')" style="width:40px;height:40px;border-radius:8px;font-size:20px;border:${ST.avatar===e?'2px solid var(--a)':'0.5px solid var(--color-border-tertiary)'};background:${ST.avatar===e?'var(--al)':'var(--color-background-secondary)'};cursor:pointer">${e}</button>`).join('');
+
+  // Theme picker
+  const tp=document.getElementById('tp');
+  if(tp)tp.innerHTML=Object.keys(TH).map(k=>`
+    <button onclick="setTH('${k}')" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:none;cursor:pointer">
+      <div style="width:100%;height:36px;border-radius:8px;background:${TH[k].a};border:${ST.theme===k?'3px solid var(--color-text-primary)':'2px solid transparent'}"></div>
+      <p style="font-size:11px;color:${ST.theme===k?'var(--color-text-primary)':'var(--color-text-secondary)'}">${TNAME[k]}</p>
+    </button>`).join('');
+
+  // Envelopes
+  const ce=document.getElementById('cfg-env');
+  if(ce)ce.innerHTML=ST.envs.length?ST.envs.map((env,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary)">
+      <span style="font-size:18px">${env.icon}</span>
+      <div style="flex:1"><p style="font-size:13px">${env.name}</p><p style="font-size:11px;color:var(--color-text-secondary)">${env.budget>0?fmt(env.budget):'Budget belum diset'} · Terpakai: ${fmt(env.spent)}</p></div>
+      <button onclick="delE(${i})" style="padding:3px 8px;font-size:11px;border:0.5px solid #F7C1C1;border-radius:6px;background:#FCEBEB;color:#791F1F;cursor:pointer;font-family:inherit">Hapus</button>
+    </div>`).join(''):'<p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:8px">Belum ada amplop. Buat satu di bawah.</p>';
+
+  // Subscriptions
+  const cs=document.getElementById('cfg-sub');
+  if(cs)cs.innerHTML=ST.subs.length?ST.subs.map((sub,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary)">
+      <div style="flex:1"><p style="font-size:13px">${sub.name}</p><p style="font-size:11px;color:var(--color-text-secondary)">${fmt(sub.amt)}/bulan</p></div>
+      <button onclick="delS(${i})" style="padding:3px 8px;font-size:11px;border:0.5px solid #F7C1C1;border-radius:6px;background:#FCEBEB;color:#791F1F;cursor:pointer;font-family:inherit">Hapus</button>
+    </div>`).join(''):'<p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:8px">Belum ada langganan.</p>';
+
+  // TX list in settings (deleteable)
+  const ct=document.getElementById('cfg-tx');
+  if(ct)ct.innerHTML=ST.txs.length?ST.txs.map((tx,i)=>{
+    const c=catOf(tx.cat);
+    return`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary)">
+      <span style="font-size:16px">${c.icon}</span>
+      <div style="flex:1"><p style="font-size:13px">${tx.note}</p><p style="font-size:11px;color:var(--color-text-secondary)">${fmtD(tx.date)} · ${fmt(tx.amt)}</p></div>
+      <button onclick="delTX(${i})" style="padding:3px 8px;font-size:11px;border:0.5px solid #F7C1C1;border-radius:6px;background:#FCEBEB;color:#791F1F;cursor:pointer;font-family:inherit">Hapus</button>
+    </div>`;
+  }).join(''):'<p style="font-size:13px;color:var(--color-text-secondary)">Belum ada transaksi.</p>';
+
+  // XP / Gamification
+  renderXP();
+}
+
+function updDaily(){
+  const cd=document.getElementById('cfg-daily');
+  if(cd)cd.textContent=ST.budget>0?fmt(ST.budget/30):'Set budget dulu';
+}
+
+function renderXP(){
+  const lv=Math.floor(ST.xp/100)+1;const xi=ST.xp%100;
+  const ln=LVS[Math.min(lv-1,LVS.length-1)];
+  const lel=document.getElementById('lv-lbl');const xel=document.getElementById('xp-lbl');const xb=document.getElementById('xpbar');const ab=document.getElementById('av-big');
+  if(lel)lel.textContent=`Level ${lv} — ${ln}`;
+  if(xel)xel.textContent=`${xi} / 100 XP`;
+  if(xb)xb.style.width=xi+'%';
+  if(ab)ab.textContent=ST.avatar;
+  const badges=[];
+  if(ST.streak>=3)badges.push({i:'🔥',n:'3 Hari Streak'});
+  if(ST.streak>=7)badges.push({i:'⚡',n:'Seminggu Bersih'});
+  if(ST.saved>0)badges.push({i:'🛡',n:'Hold Hero'});
+  if(ST.txs.length>=10)badges.push({i:'📊',n:'Data Nerd'});
+  if(ST.xp>=100)badges.push({i:'⭐',n:'Level Up'});
+  if(ST.envs.length>0)badges.push({i:'📬',n:'Amplop Maker'});
+  const bd=document.getElementById('bdg');
+  if(bd)bd.innerHTML=badges.length?badges.map(b=>`
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:58px">
+      <div style="width:44px;height:44px;border-radius:10px;background:var(--al);border:0.5px solid var(--am);display:flex;align-items:center;justify-content:center;font-size:20px">${b.i}</div>
+      <p style="font-size:10px;text-align:center;color:var(--color-text-secondary);line-height:1.3">${b.n}</p>
+    </div>`).join(''):'<p style="font-size:12px;color:var(--color-text-secondary)">Belum ada lencana. Mulai catat & hemat!</p>';
+}
+
+function setAv(e){ST.avatar=e;updateH();renderS();}
+function setTH(t){applyTH(t);renderS();}
+function toggleMode(){ST.roast=!ST.roast;const ml=document.getElementById('ml');const mb=document.getElementById('mb');if(ml)ml.textContent=ST.roast?'Roast — jujur habis-habisan':'Gentle — semangat terus';if(mb)mb.textContent=ST.roast?'Roast':'Gentle';}
+function addEnv(){
+  const icon=document.getElementById('ei').value||'💼';
+  const name=document.getElementById('en').value.trim();
+  const budget=parseFloat(document.getElementById('eb').value)||0;
+  if(!name){showT('Masukkan nama amplop!','w');return;}
+  ST.envs.push({id:Date.now(),name,icon,budget,spent:0});
+  document.getElementById('en').value='';document.getElementById('eb').value='';document.getElementById('ei').value='💼';
+  renderS();showT('Amplop "'+name+'" berhasil dibuat!','ok');
+}
+function delE(i){ST.envs.splice(i,1);renderS();}
+function addSub(){
+  const name=document.getElementById('sn').value.trim();
+  const amt=parseFloat(document.getElementById('sa').value)||0;
+  if(!name||!amt){showT('Lengkapi nama dan biaya langganan!','w');return;}
+  ST.subs.push({id:Date.now(),name,amt});
+  document.getElementById('sn').value='';document.getElementById('sa').value='';
+  renderS();showT(name+' ditambahkan ke radar langganan!','ok');
+}
+function delS(i){ST.subs.splice(i,1);renderS();}
+function delTX(i){ST.txs.splice(i,1);renderS();showT('Transaksi dihapus.','ok');}
+function resetAll(){
+  if(!confirm('Hapus SEMUA data dan kembali ke setup awal? Tidak bisa dibatalkan!'))return;
+  ST={username:'',avatar:'💰',theme:'green',budget:0,roast:true,cat:'Makanan',rp:'day',txs:[],holds:[],envs:[],subs:[],saved:0,streak:0,xp:0};
+  obTheme='green';applyTH('green');
+  document.getElementById('app').style.display='none';
+  document.getElementById('ob').style.display='flex';
+  document.getElementById('ob-name').value='';document.getElementById('ob-budget').value='';
+  buildOBThemes();
+}
+
+// ── TOAST ─────────────────────────────────
+let tT;
+function showT(msg,type){
+  const t=document.getElementById('toast');
+  const c=type==='ok'?{bg:'var(--al)',brd:'var(--am)',col:'var(--ad)'}:{bg:'#FAEEDA',brd:'#FAC775',col:'#633806'};
+  t.style.top='12px';t.style.background=c.bg;t.style.borderColor=c.brd;
+  t.innerHTML=`<p style="font-size:13px;color:${c.col};line-height:1.5">${msg}</p>`;
+  clearTimeout(tT);tT=setTimeout(()=>{t.style.top='-90px';},3800);
+}
+
+// ── INIT ──────────────────────────────────
+buildOBThemes();applyTH('green');
+</script>
+</body></html>
