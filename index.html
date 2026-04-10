@@ -409,7 +409,7 @@ function sv(){
 }
 
 function ld(){
-  const data = localStorage.getItem('flo_v3'); // ⬅️ PAKAI INI
+  const data = localStorage.getItem('flo_v3'); // 
   if(data){
     ST = JSON.parse(data);
   }
@@ -710,6 +710,19 @@ init();
 </body>
 </html>
 <script>
+function finishOB(){
+  const nama = document.getElementById('ob-n').value;
+  const budget = document.getElementById('ob-b').value;
+
+  ST.nama = nama;
+  ST.budget = Number(budget);
+
+  ST.setup = true; // 🔥 INI YANG PALING PENTING
+
+  sv();
+
+  location.reload(); // biar langsung pindah
+}
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js")
 }
