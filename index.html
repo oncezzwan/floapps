@@ -710,19 +710,6 @@ init();
 </body>
 </html>
 <script>
-function finishOB(){
-  const nama = document.getElementById('ob-n').value;
-  const budget = document.getElementById('ob-b').value;
-
-  ST.nama = nama;
-  ST.budget = Number(budget);
-
-  ST.setup = true; // 🔥 INI YANG PALING PENTING
-
-  sv();
-
-  location.reload(); // biar langsung pindah
-}
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js")
 }
@@ -740,6 +727,19 @@ function renderXP(){
   if (xpLabel) xpLabel.textContent = `${xpNow} / ${xpMax} XP`;
   if (xpBar) xpBar.style.width = (xpNow / xpMax * 100) + '%';
   if (avBig) avBig.textContent = ST.avatar;
+}
+function finishOB(){
+  const nama = document.getElementById('ob-n').value;
+  const budget = document.getElementById('ob-b').value;
+
+  ST.nama = nama;
+  ST.budget = Number(budget);
+
+  ST.setup = true; // 🔥 INI YANG PALING PENTING
+
+  sv();
+
+  location.reload(); // biar langsung pindah
 }
 document.addEventListener('DOMContentLoaded', () => {
   ld(); // ⬅️ INI KUNCI UTAMA
