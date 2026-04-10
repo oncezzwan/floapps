@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
+<head> 
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1D9E75">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <style>
@@ -718,3 +720,8 @@ init();
 </script>
 </body>
 </html>
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js")
+}
+</script>
