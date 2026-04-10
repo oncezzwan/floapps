@@ -380,25 +380,50 @@ let ST={
 };
 let obTH='green';
 
-// ── STORAGE ─────────────────────────────────────
-async function sv(){
-  if(!window.storage)return;
-  try{
-    const d={...ST,txs:ST.txs.map(t=>({...t,date:t.date.toISOString()}))};
-    await window.storage.set('flo_v3',JSON.stringify(d));
-  }catch(e){}
+// ── STORAGE (FIXED) ─────────────────────────────
+const FLO_KEY = 'flo_v3';
+
+function serializeState() {
+  return JSON.stringify({
+    ...ST,
+    txs: ST.txs.map(t => ({
+      ...t,
+      date: t.date.toISOString()
+    }))
+  });
 }
-async function ld(){
-  if(!window.storage)return;
-  try{
-    const r=await window.storage.get('flo_v3');
-    if(r&&r.value){
-      const d=JSON.parse(r.value);
-      d.txs=(d.txs||[]).map(t=>({...t,date:new Date(t.date)}));
-      Object.assign(ST,d);
+
+function deserializeState(raw) {
+  const d = JSON.parse(raw);
+  d.txs = (d.txs || []).map(t => ({
+    ...t,
+    date: new Date(t.date)
+  }));
+  return d;
+}
+
+function sv() {
+  try {
+    localStorage.setItem(FLO_KEY, serializeState());
+  } catch (e) {
+    console.error('Save error:', e);
+  }
+}
+
+function ld() {
+  try {
+    const raw = localStorage.getItem(FLO_KEY);
+    if (raw) {
+      Object.assign(ST, deserializeState(raw));
     }
-  }catch(e){}
+  } catch (e) {
+    console.error('Load error:', e);
+  }
 }
+
+// auto save saat keluar
+window.addEventListener('beforeunload', sv);
+window.addEventListener('pagehide', sv);
 
 // ── UTILS ───────────────────────────────────────
 function fmt(n){return'Rp\u00a0'+Math.round(n).toLocaleString('id-ID')}
@@ -678,8 +703,8 @@ function showT(msg,type){
 }
 
 // ── INIT ────────────────────────────────────────
-async function init(){
-  await ld();
+function init(){
+  ld();
   applyBody();
   document.getElementById('loading').style.display='none';
   if(!ST.setup){
