@@ -404,22 +404,14 @@ function deserializeState(raw) {
   return d;
 }
 
-function sv() {
-  try {
-    localStorage.setItem(FLO_KEY, serializeState());
-  } catch (e) {
-    console.error('Save error:', e);
-  }
+function sv(){
+  localStorage.setItem('flo_v3', JSON.stringify(ST));
 }
 
-function ld() {
-  try {
-    const raw = localStorage.getItem(FLO_KEY);
-    if (raw) {
-      Object.assign(ST, deserializeState(raw));
-    }
-  } catch (e) {
-    console.error('Load error:', e);
+function ld(){
+  const data = localStorage.getItem('flo_v3'); // ⬅️ PAKAI INI
+  if(data){
+    ST = JSON.parse(data);
   }
 }
 
